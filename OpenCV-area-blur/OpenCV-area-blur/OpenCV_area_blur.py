@@ -20,9 +20,11 @@ def reDraw(event,x,y,flags,param):
 source_image = cv2.imread("D:\\OpenCV\\2.jpg")
 image = cv2.imread("D:\\OpenCV\\2.jpg")
 
+x,y,c = source_image.shape
 
 
 cv2.namedWindow('image')
+cv2.resizeWindow('image', x,y)
 # create trackbars
 cv2.createTrackbar('radius','image',120,500,nothing)
 cv2.createTrackbar('kernel','image',5,255,nothing)
