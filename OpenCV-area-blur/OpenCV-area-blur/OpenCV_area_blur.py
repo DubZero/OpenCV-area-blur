@@ -1,30 +1,48 @@
 import numpy as np
 import sys
 import cv2
+def nothing(x):
+	pass
+def reDraw(event,x,y,flags,param):
+	global image
+	global blur_image
+	global radius
+	global kernel
+	if event == cv2.EVENT_MOUSEMOVE:
+		center = int(x), int(y)
+		if(kernel == -1):
+			kernel = 5
+		if(radius == -1):
+			radius = 120
+		blur_image = cv2.blur(source_image, (kernel,kernel))
+		image = CircleBlur(center)
+
+source_image = cv2.imread("D:\\OpenCV\\2.jpg")
 image = cv2.imread("D:\\OpenCV\\2.jpg")
-radius = int(input("Input blur radius in pixels: "))
 
-if radius <= 0:
-	sys.exit()
 
-def CircleBlur(image,radius):
-	blur_image = cv2.GaussianBlur(image, (7,27), 10)
-	mask = createMask(image,radius)
+
+cv2.namedWindow('image')
+# create trackbars
+cv2.createTrackbar('radius','image',120,500,nothing)
+cv2.createTrackbar('kernel','image',5,255,nothing)
+cv2.setMouseCallback('image',reDraw)
+
+def CircleBlur(center):
+	
+	mask = CreateMask(center)
 	#Smoothing borders
 	cv2.GaussianBlur(mask, (101, 101), 111, dst=mask)
-	res = blendMask(image,blur_image, mask)
-	return res
+	image = BlendByMask(source_image,blur_image, mask)
+	return image
 
-def createMask(image,radius):
-	height, width, channels = image.shape
-	circleCenterX = round(width / 2)
-	circleCenterY = round(height / 2)
-	mask = np.zeros_like(image)	
-	center = int(circleCenterX), int(circleCenterY)
+def CreateMask(center):
+	height, width, channels = source_image.shape
+	mask = np.zeros_like(source_image)	
 	cv2.circle(mask, center, radius, (255, 255, 255), -1)
 	return mask
 
-def blendMask(image1,image2,mask):
+def BlendByMask(image1,image2,mask):
 	result = []
 	matrix = np.full_like(mask[:, :, 0], 255)
 	for c in range(0, image1.shape[2]):
@@ -39,10 +57,15 @@ def blendMask(image1,image2,mask):
 	res = cv2.merge(result)
 	return res
 
-blur = CircleBlur(image,radius)
+while True:
+	cv2.imshow('image',image)
+	cv2.waitKey(50)	
 
-cv2.imshow('mask',blur)
+	# get current positions of four trackbars
+	radius = cv2.getTrackbarPos('radius','image')
+	kernel = cv2.getTrackbarPos('kernel','image')
 
+	
 print('Press any key..')
 cv2.waitKey()
 cv2.destroyAllWindows()
